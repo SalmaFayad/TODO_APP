@@ -1,13 +1,8 @@
 import 'package:conditional_builder/conditional_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sqflite/sqflite.dart';
-import 'package:todo_app/modules/archived_tasks/archived_tasks_screen.dart';
-import 'package:todo_app/modules/done_tasks/done_tasks_screen.dart';
-import 'package:todo_app/modules/new_tasks/new_tasks_screen.dart';
 import 'package:todo_app/shared/components.dart';
 import 'package:intl/intl.dart';
-import 'package:todo_app/shared/constants.dart';
 import 'package:todo_app/shared/cubit/cubit.dart';
 import 'package:todo_app/shared/cubit/states.dart';
 
@@ -26,8 +21,13 @@ class HomeScreen extends StatelessWidget
     return BlocProvider(
       create: (context) =>AppCubit()..createDataBase(),
       child: BlocConsumer<AppCubit,AppStates>(
-        listener: (context,states){},
-        builder: (context,states){
+        listener: (context,state){
+          if(state is AppInsertDataBaseState )
+            {
+              Navigator.pop(context);
+            }
+        },
+        builder: (context,state){
           AppCubit cubit= AppCubit.get(context); //new cubit object
           return Scaffold(
             key: scaffoldKey,
@@ -35,35 +35,19 @@ class HomeScreen extends StatelessWidget
               title: cubit.titles[cubit.currentIndex],
             ),
             body: ConditionalBuilder(
-              condition: true,
+              condition: state is! AppGetDataBaseLoadingState,
               builder: (context) => cubit.screens[cubit.currentIndex],
               fallback: (context) => Center(child: CircularProgressIndicator()),
             ),
             floatingActionButton: FloatingActionButton(
               onPressed: () {
-                if (cubit.openBottomSheet) {
+                if (cubit.openBottomSheet) { //if it open i will validate it
                   if (formKey.currentState.validate()) {
-                    // insertDataBase(
-                    //   date: dateController.text,
-                    //   time: timeController.text,
-                    //   title: titleController.text,
-                    // ).then((value) {
-                    //   getDataFromDataBase(database).then((value) {
-                    //     Navigator.pop(context);
-                    //     // setState(() {
-                    //     //   openBottomSheet = false;
-                    //     //   fabIcon = Icons.edit;
-                    //     //   tasks = value;
-                    //     //   print(tasks);
-                    //     // });
-                    //   });
-                    // });
+                    cubit.insertDataBase(title: titleController.text, time: timeController.text, date: dateController.text);
                   }
-                } else {
-                  scaffoldKey.currentState
-                      .showBottomSheet(
-                        (context) =>
-                        Container(
+                } else {// if not open i will open it
+                  scaffoldKey.currentState.showBottomSheet(
+                        (context) => Container(
                           color: Colors.white,
                           padding: EdgeInsets.all(20.0),
                           child: Form(
@@ -115,11 +99,10 @@ class HomeScreen extends StatelessWidget
                                       context: context,
                                       initialDate: DateTime.now(),
                                       firstDate: DateTime.now(),
-                                      lastDate: DateTime.parse('2021-10-20'),
+                                      lastDate: DateTime(DateTime.now().year+1),
                                     ).then((value) {
                                       dateController.text =
-                                          DateFormat.yMMMd().format(value);
-                                      print(DateFormat.yMMMd().format(value));
+                                          dateController.text= DateFormat.yMMMd().format(value);
                                     });
                                   },
                                   validate: (String value) {
@@ -136,10 +119,9 @@ class HomeScreen extends StatelessWidget
                           ),
                         ),
                     elevation: 20.0,
-                  )
-                      .closed
-                      .then((value) {
-                        cubit.changeBottomSheetState(isShow: false, icon: Icons.edit);
+                  ).closed.then((value)
+                  {
+                    cubit.changeBottomSheetState(isShow: false, icon: Icons.edit);
                   });
                   cubit.changeBottomSheetState(isShow: true, icon: Icons.add);
                 }

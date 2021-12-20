@@ -1,6 +1,4 @@
-//import 'package:conditional_builder/conditional_builder.dart';
 import 'package:flutter/material.dart';
-//import 'package:todo_app/shared/cubit/appCubit.dart';
 
 Widget defaultFormField({
   //function
@@ -53,8 +51,10 @@ Widget buildTaskItem(Map model) {
       children: [
         CircleAvatar(
           radius: 40.0,
-          child: Text(
-              '${model['title']}',
+          child: Center(
+            child: Text(
+                '${model['time']}',
+            ),
           ),
         ),
         SizedBox(
@@ -62,10 +62,12 @@ Widget buildTaskItem(Map model) {
         ),
         Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${model['time']}',
+              '${model['title']}',
               style: TextStyle(
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
